@@ -291,15 +291,16 @@ with open(folder_output + OUTPUTFILENAME, 'w+') as f:
     # exit component
     for i in range(len(exit_component_string)):
         f.write('%s\n' % exit_component_string[i])
-    # start material
-    for i in range(len(material_start_string)):
-        f.write('%s\n' % material_start_string[i])
-    material
-    for i in range(len(material_string)):
-        f.write('%s\n' % material_string[i])
-    # end material
-    for i in range(len(material_end_string)):
-        f.write('%s\n' % material_end_string[i])
+    if material.empty == False:
+        # start material
+        for i in range(len(material_start_string)):
+            f.write('%s\n' % material_start_string[i])
+        material
+        for i in range(len(material_string)):
+            f.write('%s\n' % material_string[i])
+        # end material
+        for i in range(len(material_end_string)):
+            f.write('%s\n' % material_end_string[i])
     # fin
     for i in range(len(fin_string)):
         f.write('%s\n' % fin_string[i])
