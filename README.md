@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/570393646.svg)](https://zenodo.org/badge/latestdoi/570393646)
+
 # PermasVmap
 
 A converter from Permas to VMAP and vice versa.
