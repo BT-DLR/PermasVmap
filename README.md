@@ -3,7 +3,7 @@
 A converter from Permas to VMAP and vice versa.
 
 ## What's this
-This software converts **models and results** from the Finite Element software **[Permas](https://www.intes.de/?neue_sprache=en)** to **[VMAP](https://vmap.vorschau.ws.fraunhofer.de)** vice versa. It is written in Python with automated applications in mind, such as cross-disciplinary optimization. The initial focus is on 3D scenarios with solid volume elements only but extensions to other kinds of elements (shells etc.) are envisioned.
+This software converts **models and results** from the Finite Element software **[Permas](https://www.intes.de/?neue_sprache=en)** to **[VMAP](https://vmap.vorschau.ws.fraunhofer.de)** and back. It is written in Python with automated applications in mind, such as cross-disciplinary optimization. The initial focus is on 3D scenarios with solid volume elements only but extensions to other kinds of elements (shells etc.) are envisioned.
 
 ### Why use VMAP?
 In our view, VMAP provides two critical features that cannot be found elsewhere
@@ -11,7 +11,7 @@ In our view, VMAP provides two critical features that cannot be found elsewhere
 2. **Standardized** [HDF5](https://www.hdfgroup.org/solutions/hdf5) format specification that is productive for structural FE simulations. The fact that **both models and results are machine accessible without parsing ASCII**, using open source software only, enables much needed efficiency at low entry barriers.
 
 ## Key features
-1. **Performance**. The code was optimized for speed and tested on a model with more than 4.2 million second order tetrahedral elements. On a standard desktop computer the overall process time for the conversion of the Permas model to the VMAP format takes just over 2 minutes. At the moment there is no use of parallel computation.
+1. **Performance**. The code was optimized for speed and tested on a model with more than 4.2 million second order tetrahedral elements. On a standard desktop computer the overall process time for the conversion of the Permas model to the VMAP format takes just over 2 minutes. This is actually not bad because *Permas models lack the part hierarchy level, so the costly association of nodes to parts has to be conducted by the converter*. At the moment there is no use of parallel computation.
 2. **Reliability**. The code is tested end-to-end at [DLR](https://dlr.de) using multiple non-academic test models.
 
 ## Detailed list of features
