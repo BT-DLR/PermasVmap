@@ -235,9 +235,9 @@ def VmapWriteEtypeItype(outputfile, esets_types, esettype_to_vmapelemtype):
             processed_eset_types.append(eset_type)
             if eset_type == 'HEXE8':
                 print('  defining VMAP_HEXAHEDRON_8 element and its integration type')
-                myIntegrationType = VMAP.VMAPIntegrationTypeFactory_createVMAPIntegrationType(
+                myIntegrationType = VMAP.VMAPIntegrationTypeFactory.createVMAPIntegrationType(
                     VMAP.VMAPIntegrationTypeFactory.GAUSS_HEXAHEDRON_8)
-                HEXE8_ElementType = VMAP.VMAPElementTypeFactory_createVMAPElementType(
+                HEXE8_ElementType = VMAP.VMAPElementTypeFactory.createVMAPElementType(
                     VMAP.sElementType.ELEM_3D,
                     VMAP.sElementType.HEXAHEDRON_8,
                     VMAP.sElementType.TRILINEAR,
@@ -248,9 +248,9 @@ def VmapWriteEtypeItype(outputfile, esets_types, esettype_to_vmapelemtype):
                 integrationTypeVector.push_back(myIntegrationType)
             if eset_type == 'TET10':
                 print('  defining VMAP_TETRAHEDRON_10 element and its integration type')
-                myIntegrationType = VMAP.VMAPIntegrationTypeFactory_createVMAPIntegrationType(
+                myIntegrationType = VMAP.VMAPIntegrationTypeFactory.createVMAPIntegrationType(
                     VMAP.VMAPIntegrationTypeFactory.GAUSS_TETRAHEDRON_4)  # TODO check
-                TET10_ElementType = VMAP.VMAPElementTypeFactory_createVMAPElementType(
+                TET10_ElementType = VMAP.VMAPElementTypeFactory.createVMAPElementType(
                     VMAP.sElementType.ELEM_3D,
                     VMAP.sElementType.TETRAHEDRON_10,
                     VMAP.sElementType.TRIQUADRATIC,
