@@ -246,20 +246,21 @@ if num_noderesults > 0:
     # print('done [took {:5.3f}s]'.format(times[-1] - times[-2])) # don't print this when there's a progressbar
     print()
 
-    # %%%% timesteps
-    print('setting timesteps ... ', end='')
-    for i in range(len(timesteps_list)):
+    # %%%% set states
+    print('setting variable states ... ', end='')
+    for ct_timestep, timestep in enumerate(timesteps_list):
         outputfile.setVariableStateInformation(
-            i, 'timestep_%s' % i, timesteps_list[i], timesteps_list[i], -1)
+            ct_timestep, 'timestep_%i' % ct_timestep, timestep, timestep, -1)
     print('done')
 
-    # %%%% groups
-    print('creating groups ... ', end='')
+    # %%%% create groups STATE-
+    print('creating state groups ... ', end='')
     variables_groups = []
-    for j in range(len(timesteps_list)):
+    for ct_timestep in range(len(timesteps_list)):
         var_group_timestep = []
-        for i in range(len(partnames)):
-            variables_part = outputfile.createVariablesGroup(j, i)
+        for ct_partname in range(len(partnames)):
+            variables_part = outputfile.createVariablesGroup(
+                ct_timestep, ct_partname)
             var_group_timestep.append(variables_part)
         variables_groups.append(var_group_timestep)
     print('done')
@@ -268,13 +269,13 @@ if num_noderesults > 0:
     times.append(time.process_time())
     print('writing results ...')
     if node_results_pd.empty == False:
-        for n in range(len(timesteps_list)):
-            print('  time: ' + str(timesteps_list[n]))
+        for ct_timestep, timestep in enumerate(timesteps_list):
+            print('  time: ' + str(timestep))
             node_results_timestep_pd = node_results_pd[node_results_pd.timestep ==
-                                                       timesteps_list[n]].drop(columns=['timestep'])
-            for i in range(len(partnames)):
-                print('    part: ' + partnames[i])
-                nodes_results_part_pd = node_results_timestep_pd[node_results_timestep_pd.PART == partnames[i]].drop(columns=[
+                                                       timestep].drop(columns=['timestep'])
+            for ct_partname, partname in enumerate(partnames):
+                print('    part: ' + partname)
+                nodes_results_part_pd = node_results_timestep_pd[node_results_timestep_pd.PART == partname].drop(columns=[
                     'PART'])
                 for j in range(len(variablestypes_nodes_list)):
                     print('      variable: ' + variablestypes_nodes_list[j])
@@ -287,15 +288,15 @@ if num_noderesults > 0:
                     VmapWrite.VmapWriteVariables(outputfile,
                                                  node_results_vartype_pd,
                                                  result_type=variablestypes_nodes_list[j],
-                                                 state=timesteps_list[n],
+                                                 state=timestep,
                                                  part_id=i,
-                                                 part_length=parts_numnodes[partnames[i]],
+                                                 part_length=parts_numnodes[partname],
                                                  dimension=node_results_vartype_pd.shape[1]-1,
                                                  incrementvalue=j,
                                                  location=2,
                                                  description=variablestypes_nodes_list[j] +
-                                                 partnames[i],
-                                                 grp=variables_groups[n][i])
+                                                 partname,
+                                                 grp=variables_groups[ct_timestep][ct_partname])
     print('done [took {:5.3f}s]'.format(times[-1] - times[-2]))
 else:
     print('no VARIABLES')
