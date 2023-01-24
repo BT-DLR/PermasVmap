@@ -61,7 +61,7 @@ else:
     inputfile_results = inputfile_model
     INPUTFILENAME_results = INPUTFILENAME_model
 
-print('input file for model:   ' + INPUTFILENAME_model +
+print('\ninput file for model:   ' + INPUTFILENAME_model +
       '\ninput file for results: ' + INPUTFILENAME_results + '\n')
 
 # %%% helper variables
@@ -124,14 +124,23 @@ print((aux.sep_small + 'PROCESSTIME FOR READING AND POSTPROCESSING MODEL: {:5.3f
       .format(times[-1] - times[-2]))
 
 # %%% VARIABLES
-timesteps_list, \
+analysis_type, \
+    temporal_values, \
     variablestypes_nodes_list, \
     node_results_pd \
     = PermasResultsRead.PermasResultsRead(
         inputfile_results,
         timesteps_user,
         variables_node_user)
-print('timesteps:', timesteps_list)
+
+print('\nnode dependend variables:', variablestypes_nodes_list)
+# NOTE: ATM, the distinction between analysis types is done via comparison of
+# analysis_type to 'VIBRATION ANALYSIS'. This must be changed in the future.
+if analysis_type != 'VIBRATION ANALYSIS':
+    print('timesteps: ', end='')
+else:
+    print('frequencies: ', end='')
+print(temporal_values)
 print()
 
 times.append(time.process_time())
@@ -221,7 +230,7 @@ if num_noderesults > 0:
         max_value=bar_max_value, widgets=widget).start()
     ct_bar = 0
     # go
-    if timesteps_list != [] and variablestypes_nodes_list != []:
+    if temporal_values != [] and variablestypes_nodes_list != []:
         nodes_results_part_list = [None]*len(node_results_pd)
         node_results_pd = node_results_pd.rename(columns={'Index': 'EID'})
         node_results_pd = node_results_pd.set_index(
@@ -242,40 +251,50 @@ if num_noderesults > 0:
                 print('ERROR: could not find part of node')
                 sys.exit(1)
         node_results_pd = node_results_pd.assign(PART=nodes_results_part_list)
+    else:
+        print('WARNING: temporal_values or variablestypes_nodes_list empty, this probably should not occur')
     times.append(time.process_time())
     # print('done [took {:5.3f}s]'.format(times[-1] - times[-2])) # don't print this when there's a progressbar
     print()
 
     # %%%% set states
     print('setting variable states ... ', end='')
-    for ct_timestep, timestep in enumerate(timesteps_list):
+    if analysis_type != 'VIBRATION ANALYSIS':
+        variable_state_string = 'timestep'
+    else:
+        variable_state_string = 'frequency'
+    for ct_tval, tval in enumerate(temporal_values):
         outputfile.setVariableStateInformation(
-            ct_timestep, 'timestep_%i' % ct_timestep, timestep, timestep, -1)
+            ct_tval, '%s_%i' % (variable_state_string, ct_tval), tval, tval, -1)
     print('done')
 
     # %%%% create groups STATE-
     print('creating state groups ... ', end='')
     variables_groups = []
-    for ct_timestep in range(len(timesteps_list)):
-        var_group_timestep = []
+    for ct_tval in range(len(temporal_values)):
+        var_group_tval = []
         for ct_partname in range(len(partnames)):
             variables_part = outputfile.createVariablesGroup(
-                ct_timestep, ct_partname)
-            var_group_timestep.append(variables_part)
-        variables_groups.append(var_group_timestep)
+                ct_tval, ct_partname)
+            var_group_tval.append(variables_part)
+        variables_groups.append(var_group_tval)
     print('done')
 
     # %%%% nodal
     times.append(time.process_time())
     print('writing results ...')
     if node_results_pd.empty == False:
-        for ct_timestep, timestep in enumerate(timesteps_list):
-            print('  time: ' + str(timestep))
-            node_results_timestep_pd = node_results_pd[node_results_pd.timestep ==
-                                                       timestep].drop(columns=['timestep'])
+        for ct_tval, tval in enumerate(temporal_values):
+            if analysis_type != 'VIBRATION ANALYSIS':
+                print('  time: ', end='')
+            else:
+                print('  frequency: ', end='')
+            print(str(tval))
+            node_results_tval_pd = node_results_pd[node_results_pd.temporal ==
+                                                   tval].drop(columns=['temporal'])
             for ct_partname, partname in enumerate(partnames):
                 print('    part: ' + partname)
-                nodes_results_part_pd = node_results_timestep_pd[node_results_timestep_pd.PART == partname].drop(columns=[
+                nodes_results_part_pd = node_results_tval_pd[node_results_tval_pd.PART == partname].drop(columns=[
                     'PART'])
                 for j in range(len(variablestypes_nodes_list)):
                     print('      variable: ' + variablestypes_nodes_list[j])
@@ -288,7 +307,7 @@ if num_noderesults > 0:
                     VmapWrite.VmapWriteVariables(outputfile,
                                                  node_results_vartype_pd,
                                                  result_type=variablestypes_nodes_list[j],
-                                                 state=timestep,
+                                                 state=tval,
                                                  part_id=i,
                                                  part_length=parts_numnodes[partname],
                                                  dimension=node_results_vartype_pd.shape[1]-1,
@@ -296,7 +315,7 @@ if num_noderesults > 0:
                                                  location=2,
                                                  description=variablestypes_nodes_list[j] +
                                                  partname,
-                                                 grp=variables_groups[ct_timestep][ct_partname])
+                                                 grp=variables_groups[ct_tval][ct_partname])
     print('done [took {:5.3f}s]'.format(times[-1] - times[-2]))
 else:
     print('no VARIABLES')

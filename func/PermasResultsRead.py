@@ -38,6 +38,7 @@ def PermasResultsRead(inputfile_results, timesteps_user, variables_node_user):
 
     Returns
     -------
+    analysis_type : string
     timesteps_list : list of floats
         Actual timesteps of returned results, sorted ascendingly.
     variablestypes_nodes_list : list of strings
@@ -50,22 +51,26 @@ def PermasResultsRead(inputfile_results, timesteps_user, variables_node_user):
     if 'NONE' in timesteps_user:
         node_results_pd = pd.DataFrame([])
 
+    analysis_type = ''
     # READ NODAL RESULTS
     if 'NONE' in variables_node_user:
         node_results_pd = pd.DataFrame([])
     else:
         if not 'DEFAULT' in variables_node_user:
-            for i in range(len(variables_node_user)):
-                node_results_var = PermasHdfRead.PermasHdfRead(
-                    inputfile_results, 'node_results', variable_keyword=variables_node_user[i])
-                if i == 0:
+            for ct_var, var_keyword in enumerate(variables_node_user):
+                analysis_type_temp, node_results_var = PermasHdfRead.PermasHdfRead(
+                    inputfile_results, 'node_results', variable_keyword=var_keyword)
+                # analysis=='' if requested variable is not present
+                if analysis_type == '':
+                    analysis_type = analysis_type_temp
+                if ct_var == 0:
                     node_results_pd = node_results_var
                 else:
                     node_results_pd = pd.concat(
                         (node_results_pd, node_results_var), axis=0)
             # only needed timesteps:
             if not 'DEFAULT' in timesteps_user:
-                node_results_pd = node_results_pd[node_results_pd.timestep.isin(
+                node_results_pd = node_results_pd[node_results_pd.temporal.isin(
                     timesteps_user)]
         else:
             node_results_pd = []
@@ -76,12 +81,13 @@ def PermasResultsRead(inputfile_results, timesteps_user, variables_node_user):
             list(set(node_results_pd.variabletype)))
     except AttributeError:
         variablestypes_nodes_list = []
-    print('node dependend variables:', variablestypes_nodes_list)
-    print()
 
     try:
-        timesteps_list = sorted(list(set(node_results_pd.timestep)))
+        temporal_values = sorted(list(set(node_results_pd.temporal)))
     except AttributeError:
-        timesteps_list = []
+        temporal_values = []
 
-    return timesteps_list, variablestypes_nodes_list, node_results_pd
+    return analysis_type, \
+        temporal_values, \
+        variablestypes_nodes_list, \
+        node_results_pd

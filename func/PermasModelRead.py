@@ -32,7 +32,7 @@ def print_readline(line_split):
 
 def flatten_sets(list_3level):
     """
-    Flatten 2 levels  of nested lists, using itertools: https://datascienceparichay.com/article/python-flatten-a-list-of-lists-to-a-single-list/ .
+    Flatten 2 levels of nested lists, using itertools: https://datascienceparichay.com/article/python-flatten-a-list-of-lists-to-a-single-list/ .
 
     Parameters
     ----------
@@ -105,7 +105,7 @@ def PermasModelRead(inputfile_model):
     print('READING DATA')
     # %% prepare
 
-    model_h5dataset = PermasHdfRead.PermasHdfRead(inputfile_model, 'model')
+    _, model_h5dataset = PermasHdfRead.PermasHdfRead(inputfile_model, 'model')
 
     # change datatype from h5py._hl.dataset.Dataset to numpy.ndarray to list
     # https://www.w3resource.com/numpy/string-operations/decode.php
@@ -271,6 +271,8 @@ def PermasModelRead(inputfile_model):
             pos_offset += 1
             line_split = model_list[elprop_pos+pos_offset].lstrip().split()
         print('... done')
+    if len(eset_material) == 0:
+        print('NOTE: no $ELPROP or no material assignment found. This may be due to use of $INSERT VARIANT, no checks performed.')
     print()
 
     # %%% RSYS

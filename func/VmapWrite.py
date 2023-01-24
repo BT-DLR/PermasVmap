@@ -324,7 +324,27 @@ def VmapWriteMaterial(outputfile, materials):
 # ATTENTION: this function must be defined last in this file in order for the
 # Spyder outline to be correctly displayed. If another function is defined
 # below, then the outline might be distorted.
-def VmapWriteGeometry(outputfile, partnames, nodes, nodes_all_ids, nsets_names, esets, esets_types, eset_material, esettype_to_vmapelemtype, elements_hexe8, elements_hexe8_ids, elements_tet10, elements_tet10_ids, nsets, nsets_first, surfs_ids, surfs_firstel, surfs_flat, sfsets_ids, sfsets_names, materials):
+def VmapWriteGeometry(outputfile,
+                      partnames,
+                      nodes,
+                      nodes_all_ids,
+                      nsets_names,
+                      esets,
+                      esets_types,
+                      eset_material,
+                      esettype_to_vmapelemtype,
+                      elements_hexe8,
+                      elements_hexe8_ids,
+                      elements_tet10,
+                      elements_tet10_ids,
+                      nsets,
+                      nsets_first,
+                      surfs_ids,
+                      surfs_firstel,
+                      surfs_flat,
+                      sfsets_ids,
+                      sfsets_names,
+                      materials):
     """
     Write GEOMETRY group to VMAP file.
 
@@ -361,17 +381,18 @@ def VmapWriteGeometry(outputfile, partnames, nodes, nodes_all_ids, nsets_names, 
         part_group = geometry_groups[ct_eset]
 
         # %%% material ID of part
-        mat_id = float('nan')
+        mat_id = -1
         found_mat = False
-        for material in materials:
-            if eset_material[partnames[ct_eset]] == material['name']:
-                mat_id = material['id']
-                print('  material: ' +
-                      material['name'] + ' (' + str(mat_id) + ')')
-                found_mat = True
-                break
+        if len(eset_material) > 0:
+            for material in materials:
+                if eset_material[partnames[ct_eset]] == material['name']:
+                    mat_id = material['id']
+                    print('  material: ' +
+                          material['name'] + ' (' + str(mat_id) + ')')
+                    found_mat = True
+                    break
         if not found_mat:
-            print('  WARNING: no material found. setting ID=nan, continuing')
+            print('  WARNING: no material found. setting ID=-1, continuing')
 
         # %%% ELEMENTS & eset_definition
         # this will find the element definitions of eset, i.e. of the current part

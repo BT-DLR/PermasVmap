@@ -13,6 +13,7 @@ Current wishlist in random order:
 - Increase efficiency assigning nodes to parts (current bottleneck, although already fairly optimized)
 - Fix conversion of cylindrical coordinate systems
 - Automatic global cartesian coordinate system, correctly referred to by ELEMENTS
+- Adaptive output data types (should not be 64-bit if inputs are 32-bit)
 
 # Getting started in Sypder 5 IDE
 0. If you don't have Spyder at hand, you may install it via [conda](https://anaconda.org/anaconda/spyder).
@@ -56,7 +57,7 @@ Counters (e.g. in `for` loops on `enumerate`d quantities) are prefixed `ct_`.
 Performance must always be in mind when implementing new features. What happens to the runtime and the memory if you increase the number of nodes or elements by 1000x? Where is the bottleneck?
 
 This is rather general but while we're at it:
-- Try to avoid usage of any data. If not unavoidable, re-use it instead of re-computing or re-reading it from the hard drive.
+- Try to avoid loading or storing data. If not unavoidable, re-use it instead of re-computing or re-reading it from the hard drive.
 - Access data linearly: no 'jumping around'.
 - Use iterators on containers instead of looping an index variable through its range (also more readability and less room for errors).
 - Use low-level Python features for low-level code hierarchy: the more often you perform an operation (e.g. on FE nodes, the lowest-level objects) the more care you should take with respect to efficiency.

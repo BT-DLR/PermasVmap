@@ -26,7 +26,8 @@ In our view, VMAP provides two critical features that cannot be found elsewhere
 
 ## Detailed list of features
 1. Supported elements: HEXE8, TET10
-2. Further supported model keywords:
+2. Supported analysis types: STATIC, NLMATERIAL, VIBRATION ANALYSIS
+3. Further supported model keywords:
    - $NSET (assumption: each NSET is contained in one ESET)
    - $SURFACE ELEMENTS (assumption: each SURFACE is contained in one ESET)
    - $SFSET
@@ -38,7 +39,7 @@ In our view, VMAP provides two critical features that cannot be found elsewhere
 
 ### Requirements
 - VMAP v1.0.0
-- Python envionment according to [environment.yml](./environment.yml)
+- Python envionment according to [environment.yml](./environment.yml). The code should work with Python 3.7 but is only tested with the newer verison stated in the file.
 
 ### Instructions
 1. Set up a python environment including the modules listed in [environment.yml](./environment.yml), e.g. using [conda](https://conda.io).
@@ -76,4 +77,4 @@ Nadine Barth and Oliver Kunc were the initial main developers.
 Licensed under the Apache License, Version 2.0, see [LICENSE](LICENSE).
 
 ## Project status
-Development of this project is **active** (2022). Contributions are highly welcome, see [CONTRIBUTING.md](CONTRIBUTING.md) for more information.
+Development of this project is **active** (2023). Contributions are highly welcome, see [CONTRIBUTING.md](CONTRIBUTING.md) for more information.
