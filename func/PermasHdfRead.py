@@ -45,8 +45,12 @@ def PermasHdfRead(openfile, keyword, variable_keyword='NONE'):
 
     Returns
     -------
-    analysis_type : string
-        Is empty if keyword == 'model'.
+    analysis_info : dictionary
+        Information on the analysis options. Is empty if keyword == 'model'.
+        'permas_type' : 'STATIC' or 'NLMATERIAL' or 'VIBRATION ANALYSIS'
+        'STATENAME_string' : 'LINEAR' or 'NONLINEAR' or 'MODAL' or 'NODDIA_X'
+        'temporal_type' : 'timesteps' or 'frequencies'
+        'temporal_values' : list of floats
     HdfData : Pandas dataframe
 
     """
@@ -58,8 +62,10 @@ def PermasHdfRead(openfile, keyword, variable_keyword='NONE'):
     availableanalyses_temporal = ['STATIC', 'NLMATERIAL']
     availableanalyses_modal = ['VIBRATION ANALYSIS']
 
-    # analysis type. actually there is one per situation, but only one situation is considered
-    analysis_type = ''
+    # analysis information. actually there is one per situation, but only one situation is considered
+    analysis_info = {}
+    # modal diameter number, if applicable
+    MNODDIA = -1
 
     # return container
     HdfData = pd.DataFrame([])
@@ -144,6 +150,25 @@ def PermasHdfRead(openfile, keyword, variable_keyword='NONE'):
                         print(availableanalyses_temporal
                               + availableanalyses_modal)
                         sys.exit(1)
+                    # try to find nodal diameter information in .Model. If .Model is not available or does not contain $PARAMETER with keyword MNODDIA, then we assume it is not a nodal diameter analysis.
+                    if analysis_type == 'VIBRATION ANALYSIS':
+                        print(
+                            '    trying to find keyword MNODDIA in $PARAMETER block of .Model dataset ...')
+                        try:
+                            model_list = list(np.char.decode(
+                                situation['.Model'], encoding='UTF-8'))
+                        except:
+                            print('      no model found')
+                            model_list = []
+                        for line in model_list:
+                            if line.startswith('      MNODDIA'):
+                                MNODDIA = float(line.strip().split()[-1])
+                                break
+                        if MNODDIA != -1:
+                            print('      found MNODDIA = ' + str(MNODDIA))
+                        else:
+                            print('      could not find MNODDIA')
+                        print('    ... done')
                 except:
                     print('ERROR: no analysis found.')
                     sys.exit(1)
@@ -161,24 +186,37 @@ def PermasHdfRead(openfile, keyword, variable_keyword='NONE'):
                     print('ERROR: no dataset ' + variable_path + '/.RowDes')
                     sys.exit(1)
                 # read Column1, Column2, etc and append to HdfData
+                col_vals = []
                 for ct_col, col_des_val in enumerate(col_des):
                     try:
                         print('  reading ' + variable_path +
                               '/Column' + str(ct_col+1), flush=True)
-                        values = pd.DataFrame(
-                            result_group['Column' + str(ct_col+1)])
-                        # we have all we need. let's assemble our dataframe!
+                        col_vals.append(pd.DataFrame(
+                            result_group['Column' + str(ct_col+1)]))
+                        # add auxiliary columns.
                         # column 'temporal' contains either timestep or frequency,
                         # repeated for every row (i.e. node)
-                        values.insert(0, 'node', row_des)
-                        values.insert(1, "temporal", col_des_val)
-                        values.insert(2, "variabletype", variable_keyword)
-                        if HdfData.size == 0:
-                            HdfData = values
-                        else:
-                            HdfData = pd.concat(
-                                [HdfData, values], axis=0)
+                        col_vals[-1].insert(0, 'node', row_des)
+                        col_vals[-1].insert(1, 'temporal', col_des_val)
+                        col_vals[-1].insert(2, 'variabletype', variable_keyword)
                     except:
                         print('ERROR: cannot open column')
                         sys.exit(1)
-    return analysis_type, HdfData
+                HdfData = pd.concat(col_vals, axis=0)
+                # assemble analysis_info dictionary
+                analysis_info = {'permas_type': analysis_type}
+                if analysis_type == 'STATIC':
+                    analysis_info['STATENAME_string'] = 'LINEAR'
+                    analysis_info['temporal_type'] = 'timesteps'
+                elif analysis_type == 'NLMATERIAL':
+                    analysis_info['STATENAME_string'] = 'NONLINEAR'
+                    analysis_info['temporal_type'] = 'timesteps'
+                else:  # VIBRATION ANALYSIS
+                    if MNODDIA > -1:
+                        analysis_info['STATENAME_string'] = 'NODDIA_' + \
+                            str(MNODDIA)
+                    else:
+                        analysis_info['STATENAME_string'] = 'MODAL'
+                    analysis_info['temporal_type'] = 'frequencies'
+                analysis_info['temporal_values'] = list(col_des)
+    return analysis_info, HdfData

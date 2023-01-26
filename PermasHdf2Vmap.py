@@ -124,8 +124,7 @@ print((aux.sep_small + 'PROCESSTIME FOR READING AND POSTPROCESSING MODEL: {:5.3f
       .format(times[-1] - times[-2]))
 
 # %%% VARIABLES
-analysis_type, \
-    temporal_values, \
+analysis_info, \
     variablestypes_nodes_list, \
     node_results_pd \
     = PermasResultsRead.PermasResultsRead(
@@ -134,13 +133,8 @@ analysis_type, \
         variables_node_user)
 
 print('\nnode dependend variables:', variablestypes_nodes_list)
-# NOTE: ATM, the distinction between analysis types is done via comparison of
-# analysis_type to 'VIBRATION ANALYSIS'. This must be changed in the future.
-if analysis_type != 'VIBRATION ANALYSIS':
-    print('timesteps: ', end='')
-else:
-    print('frequencies: ', end='')
-print(temporal_values)
+print(analysis_info['temporal_type'] + ': ', end='')
+print(analysis_info['temporal_values'])
 print()
 
 times.append(time.process_time())
@@ -230,7 +224,7 @@ if num_noderesults > 0:
         max_value=bar_max_value, widgets=widget).start()
     ct_bar = 0
     # go
-    if temporal_values != [] and variablestypes_nodes_list != []:
+    if analysis_info['temporal_values'] != [] and variablestypes_nodes_list != []:
         nodes_results_part_list = [None]*len(node_results_pd)
         node_results_pd = node_results_pd.rename(columns={'Index': 'EID'})
         node_results_pd = node_results_pd.set_index(
@@ -257,21 +251,17 @@ if num_noderesults > 0:
     # print('done [took {:5.3f}s]'.format(times[-1] - times[-2])) # don't print this when there's a progressbar
     print()
 
-    # %%%% set states
-    print('setting variable states ... ', end='')
-    if analysis_type != 'VIBRATION ANALYSIS':
-        variable_state_string = 'timestep'
-    else:
-        variable_state_string = 'frequency'
-    for ct_tval, tval in enumerate(temporal_values):
+    # %%%% set STATE-X
+    print('setting STATE-X groups ... ', end='')
+    for ct_tval, tval in enumerate(analysis_info['temporal_values']):
         outputfile.setVariableStateInformation(
-            ct_tval, '%s_%i' % (variable_state_string, ct_tval), tval, tval, -1)
+            ct_tval, analysis_info['STATENAME_string'], tval, tval, -1)
     print('done')
 
-    # %%%% create groups STATE-
+    # %%%% create groups STATE-X/PART
     print('creating state groups ... ', end='')
     variables_groups = []
-    for ct_tval in range(len(temporal_values)):
+    for ct_tval in range(len(analysis_info['temporal_values'])):
         var_group_tval = []
         for ct_partname in range(len(partnames)):
             variables_part = outputfile.createVariablesGroup(
@@ -284,12 +274,23 @@ if num_noderesults > 0:
     times.append(time.process_time())
     print('writing results ...')
     if node_results_pd.empty == False:
-        for ct_tval, tval in enumerate(temporal_values):
-            if analysis_type != 'VIBRATION ANALYSIS':
+        tval_old = -1
+        for ct_tval, tval in enumerate(analysis_info['temporal_values']):
+            if not analysis_info['STATENAME_string'].startswith('NODDIA'):
+                variable_description = 'REAL'
                 print('  time: ', end='')
             else:
-                print('  frequency: ', end='')
+                # if two "real" mode shapes correspond to the "same" frequency,
+                # the second occurence is chosen to be the imaginary part of
+                # the complex mode shape. frequencies are only approx. equal.
+                if abs(tval-tval_old)/tval < 1e-6:
+                    variable_description = 'IMAGINARY'
+                else:
+                    variable_description = 'REAL'
+                print('  ' + variable_description +
+                      ' part of complex mode with frequency: ', end='')
             print(str(tval))
+            tval_old = tval
             node_results_tval_pd = node_results_pd[node_results_pd.temporal ==
                                                    tval].drop(columns=['temporal'])
             for ct_partname, partname in enumerate(partnames):
@@ -313,8 +314,7 @@ if num_noderesults > 0:
                                                  dimension=node_results_vartype_pd.shape[1]-1,
                                                  incrementvalue=j,
                                                  location=2,
-                                                 description=variablestypes_nodes_list[j] +
-                                                 partname,
+                                                 description=variable_description,
                                                  grp=variables_groups[ct_tval][ct_partname])
     print('done [took {:5.3f}s]'.format(times[-1] - times[-2]))
 else:

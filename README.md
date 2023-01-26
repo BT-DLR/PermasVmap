@@ -26,7 +26,11 @@ In our view, VMAP provides two critical features that cannot be found elsewhere
 
 ## Detailed list of features
 1. Supported elements: HEXE8, TET10
-2. Supported analysis types: STATIC, NLMATERIAL, VIBRATION ANALYSIS
+2. Supported analysis types:
+   - STATIC
+   - NLMATERIAL
+   - VIBRATION ANALYSIS
+   - VIBRATION ANALYSIS with nodal diameter
 3. Further supported model keywords:
    - $NSET (assumption: each NSET is contained in one ESET)
    - $SURFACE ELEMENTS (assumption: each SURFACE is contained in one ESET)

@@ -38,9 +38,8 @@ def PermasResultsRead(inputfile_results, timesteps_user, variables_node_user):
 
     Returns
     -------
-    analysis_type : string
-    timesteps_list : list of floats
-        Actual timesteps of returned results, sorted ascendingly.
+    analysis_info : dictionary
+        Information on the analysis options.
     variablestypes_nodes_list : list of strings
         Actual variable names of returned results, in alphabetical order.
     node_results_pd : pd dataframe
@@ -51,7 +50,7 @@ def PermasResultsRead(inputfile_results, timesteps_user, variables_node_user):
     if 'NONE' in timesteps_user:
         node_results_pd = pd.DataFrame([])
 
-    analysis_type = ''
+    analysis_info = {}
     # READ NODAL RESULTS
     if 'NONE' in variables_node_user:
         node_results_pd = pd.DataFrame([])
@@ -61,8 +60,8 @@ def PermasResultsRead(inputfile_results, timesteps_user, variables_node_user):
                 analysis_type_temp, node_results_var = PermasHdfRead.PermasHdfRead(
                     inputfile_results, 'node_results', variable_keyword=var_keyword)
                 # analysis=='' if requested variable is not present
-                if analysis_type == '':
-                    analysis_type = analysis_type_temp
+                if analysis_info == {}:
+                    analysis_info = analysis_type_temp
                 if ct_var == 0:
                     node_results_pd = node_results_var
                 else:
@@ -82,12 +81,6 @@ def PermasResultsRead(inputfile_results, timesteps_user, variables_node_user):
     except AttributeError:
         variablestypes_nodes_list = []
 
-    try:
-        temporal_values = sorted(list(set(node_results_pd.temporal)))
-    except AttributeError:
-        temporal_values = []
-
-    return analysis_type, \
-        temporal_values, \
+    return analysis_info, \
         variablestypes_nodes_list, \
         node_results_pd
