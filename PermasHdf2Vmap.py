@@ -132,9 +132,15 @@ analysis_info, \
         timesteps_user,
         variables_node_user)
 
-print('\nnode dependend variables:', variablestypes_nodes_list)
-print(analysis_info['temporal_type'] + ': ', end='')
-print(analysis_info['temporal_values'])
+num_noderesults = len(node_results_pd)
+num_temporal = len(timesteps_user)
+if num_noderesults > 0 and num_temporal > 0:
+    print('\nnode dependend variables:', variablestypes_nodes_list)
+    print(analysis_info['temporal_type'] + ': ', end='')
+    print(analysis_info['temporal_values'])
+else:
+    print('no results read.')
+
 print()
 
 times.append(time.process_time())
@@ -198,8 +204,7 @@ print((aux.sep_small + 'PROCESSTIME FOR WRITING GEOMETRY: {:5.3f}s\n' + aux.sep_
       .format(times[-1] - times[-2]))
 
 # %%% VARIABLES
-num_noderesults = len(node_results_pd)
-if num_noderesults > 0:
+if num_noderesults > 0 and num_temporal > 0:
     print('writing VARIABLES ...')
     # %%%% assign POINTS to PARTS
     # TODO this is the bottleneck of the overall performance. to improve, one might
@@ -255,7 +260,7 @@ if num_noderesults > 0:
     print('setting STATE-X groups ... ', end='')
     for ct_tval, tval in enumerate(analysis_info['temporal_values']):
         outputfile.setVariableStateInformation(
-            ct_tval, analysis_info['STATENAME_string'], tval, tval, -1)
+            ct_tval, analysis_info['STATENAME_string'], float(tval), float(tval), -1)
     print('done')
 
     # %%%% create groups STATE-X/PART
@@ -278,6 +283,7 @@ if num_noderesults > 0:
         for ct_tval, tval in enumerate(analysis_info['temporal_values']):
             if not analysis_info['STATENAME_string'].startswith('NODDIA'):
                 variable_description = 'REAL'
+                myentity = 1
                 print('  time: ', end='')
             else:
                 # if two "real" mode shapes correspond to the "same" frequency,
@@ -285,8 +291,10 @@ if num_noderesults > 0:
                 # the complex mode shape. frequencies are only approx. equal.
                 if abs(tval-tval_old)/tval < 1e-6:
                     variable_description = 'IMAGINARY'
+                    myentity = 2
                 else:
                     variable_description = 'REAL'
+                    myentity = 1
                 print('  ' + variable_description +
                       ' part of complex mode with frequency: ', end='')
             print(str(tval))
@@ -308,11 +316,12 @@ if num_noderesults > 0:
                     VmapWrite.VmapWriteVariables(outputfile,
                                                  node_results_vartype_pd,
                                                  result_type=variablestypes_nodes_list[j],
-                                                 state=tval,
-                                                 part_id=i,
+                                                 state="STATE-"+str(ct_tval),
+                                                 part_id=ct_partname,
                                                  part_length=parts_numnodes[partname],
                                                  dimension=node_results_vartype_pd.shape[1]-1,
-                                                 incrementvalue=j,
+                                                 entity=myentity,
+                                                 identifier=j,
                                                  location=2,
                                                  description=variable_description,
                                                  grp=variables_groups[ct_tval][ct_partname])
