@@ -1,3 +1,4 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7360515.svg)](https://doi.org/10.5281/zenodo.7360515)
 # PermasVmap
 
 A converter from Permas to VMAP and vice versa.
@@ -19,10 +20,12 @@ In our view, VMAP provides two critical features that cannot be found elsewhere
 2. VMAP -> Permas-ASCII
    - for FE model only
    - see Vmap2PermasAscii.py
+  
+In the workflow graph above, the input of 1 and the output of 2 may possibly not be identical for the reason that not all features of Permas (e.g. element types) are implemented at the moment. Also, nodes that do not belong to any elements are dropped (e.g. that are exclusively used for the definitions of coordinate systems).
 
 ## Key features
 1. **Performance**. The code was optimized for speed and tested on a model with more than 4.2 million second order tetrahedral elements. On a standard desktop computer the overall process time for the conversion of the Permas model to the VMAP format takes just over 2 minutes. At the moment there is no use of parallel computation.
-2. **Reliability**. The code is tested end-to-end at [DLR](https://dlr.de) using multiple non-academic test models.
+2. **Reliability**. The code is tested end-to-end at [DLR-BT](https://dlr.de/bt) using multiple non-academic test models.
 
 ## Detailed list of features
 1. Supported elements: HEXE8, TET10
@@ -42,19 +45,43 @@ In our view, VMAP provides two critical features that cannot be found elsewhere
 ## Getting started _using_ the code
 
 ### Requirements
-- VMAP v1.0.0
-- Python envionment according to [environment.yml](./environment.yml). The code should work with Python 3.7 but is only tested with the newer verison stated in the file.
+- VMAP v1.0.0 (Windows binaries will soon be included in this repository)
+- Python envionment according to [environment.yml](./environment.yml). The code should work with Python 3.7 but is only tested with the newer version stated in the file.
 
 ### Instructions
+
+#### Setup
 1. Set up a python environment including the modules listed in [environment.yml](./environment.yml), e.g. using [conda](https://conda.io).
 2. Copy the file [./local/local_imports.py.template](local/local_imports.py.template) to _./local_imports.py_ and adapt it so that you local VMAP instance is found.
-2. Activate the environment, change to the code's root directory and run `python Permashdf2Vmap.py rotorsegment.hdf`.
-3. See the result in the [data](/data) subfolder: the input file [rotorsegment.hdf](/data/rotorsegment.hdf) was converted to _rotorsegment_toVMAP.hdf_ according to the VMAP standard.
-4. run `python Vmap2PermasAscii.py rotorsegment_toVMAP.hdf` for the inverse conversion.
-5. See the result in the [data](/data) subfolder: the input file _rotorsegment_toVMAP.hdf_ was converted to _rotorsegment_toVMAP_toPERMASASCII.dat_.
-6. For more info on the usage, run `python Permashdf2Vmap.py` or `python Vmap2PermasAscii.py` to see explanations and examples of the possible arguments.
-7. The input file for main workflow 1 must be in Permas-HDF format. If you just have an ASCII version of your model, use Permas to convert it to Permas-HDF via a UCI file with the following content:
+2. Activate the environment
+3. change to the code's root directory
 
+#### Example testing
+Follow the setup instructions first, then:
+1. Run `python Permashdf2Vmap.py rotorsegment.hdf`.
+2. See the result in the [data](/data) subfolder: the input file [rotorsegment.hdf](/data/rotorsegment.hdf) was converted to _rotorsegment_toVMAP.hdf_ according to the VMAP standard.
+3. Run `python Vmap2PermasAscii.py rotorsegment_toVMAP.hdf` for the inverse conversion.
+4. See the result in the [data](/data) subfolder: the input file _rotorsegment_toVMAP.hdf_ was converted to _rotorsegment_toVMAP_toPERMASASCII.dat_.
+5. For more info on the usage, run `python Permashdf2Vmap.py` or `python Vmap2PermasAscii.py` to see explanations and examples of the possible arguments.
+
+#### Productive usage
+Follow the setup instructions first, then:
+1. In your Permas-UCI file, include the following lines:
+```
+! header section:
+DEFAULT SET HDF_DATASIZE=64 ! sets maximum accuracy for HDF data
+! [...]
+! TASK section:
+	EXPORT
+		ITEM MODL
+		GO PERMAS BINARY
+```
+2. Run Permas.
+3. Move the resulting <project>.hdf file to the [data](/data) subfolder of this repository.
+4. Run `python Permashdf2Vmap.py <project>.hdf`.
+5. Enjoy the multitude of possible workflows enabled by the [VMAP-ecosystem](https://vmap.vorschau.ws.fraunhofer.de/en/tools.html).
+
+If you just want to convert your model to VMAP, i.e. without any simulation results, run Permas with the following UCI:
 ```
 SET DATABASE = DELETE
 
@@ -76,6 +103,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). There you can also find information on t
 
 ## Authors and acknowledgment
 Nadine Barth and Oliver Kunc were the initial main developers.
+
+## Citing
+See the DOI link at the top.
 
 ## License
 Licensed under the Apache License, Version 2.0, see [LICENSE](LICENSE).
