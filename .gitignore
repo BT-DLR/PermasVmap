@@ -3,3 +3,5 @@ __pycache__/
 local_imports.py
 data/**/*
 !data/rotorsegment.hdf
+tests/**/*
+.gitlab-ci.yml
