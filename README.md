@@ -24,7 +24,7 @@ In our view, VMAP provides two critical features that cannot be found elsewhere
 In the workflow graph above, the input of 1 and the output of 2 may possibly not be identical for the reason that not all features of Permas (e.g. element types) are implemented at the moment. Also, nodes that do not belong to any elements are dropped (e.g. that are exclusively used for the definitions of coordinate systems).
 
 ## Key features
-1. **Performance**. The code was optimized for speed and tested on a model with more than 4.2 million second order tetrahedral elements. On a standard desktop computer the overall process time for the conversion of the Permas model to the VMAP format takes just over 2 minutes. At the moment there is no use of parallel computation.
+1. **Performance**. The code was fairly optimized for speed. Models with millions of elements can be converted within seconds ... or minutes, depending on the circumstances.
 2. **Reliability**. The code is tested end-to-end at [DLR-BT](https://dlr.de/bt) using multiple non-academic test models.
 
 ## Detailed list of features

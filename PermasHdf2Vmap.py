@@ -230,28 +230,35 @@ if num_noderesults > 0 and num_temporal > 0:
     ct_bar = 0
     # go
     if analysis_info['temporal_values'] != [] and variablestypes_nodes_list != []:
-        nodes_results_part_list = [None]*len(node_results_pd)
-        node_results_pd = node_results_pd.rename(columns={'Index': 'EID'})
-        node_results_pd = node_results_pd.set_index(
-            np.arange(node_results_pd.shape[0]))
-        for i in range(len(node_results_pd)):
-            if i % divisor == 0:
-                bar.update(ct_bar)
-                ct_bar += 1
-            node = node_results_pd.node[i]
-            # find part of current node
-            found_part_of_node = False
-            for ct_part, partname in enumerate(partnames):
-                if node in esets_nodes_unique[ct_part]:
-                    nodes_results_part_list[i] = partname
-                    found_part_of_node = True
-                    break
-            if not found_part_of_node:
-                print('ERROR: could not find part of node')
-                sys.exit(1)
-        node_results_pd = node_results_pd.assign(PART=nodes_results_part_list)
+        if len(partnames) > 1:
+            # list containing the partname for each node
+            nodes_results_part_list = [None]*len(node_results_pd)
+            node_results_pd = node_results_pd.rename(columns={'Index': 'EID'})
+            node_results_pd = node_results_pd.set_index(
+                np.arange(node_results_pd.shape[0]))
+            for i in range(len(node_results_pd)):
+                if i % divisor == 0:
+                    bar.update(ct_bar)
+                    ct_bar += 1
+                node = node_results_pd.node[i]
+                # find part of current node
+                found_part_of_node = False
+                for ct_part, partname in enumerate(partnames):
+                    if node in esets_nodes_unique[ct_part]:
+                        nodes_results_part_list[i] = partname
+                        found_part_of_node = True
+                        break
+                if not found_part_of_node:
+                    print('ERROR: could not find part of node')
+                    sys.exit(1)
+                node_results_pd = node_results_pd.assign(
+                    PART=nodes_results_part_list)
+        else:
+            node_results_pd = node_results_pd.assign(
+                PART=[partnames[0]]*len(node_results_pd))
     else:
         print('WARNING: temporal_values or variablestypes_nodes_list empty, this probably should not occur')
+
     times.append(time.process_time())
     # print('done [took {:5.3f}s]'.format(times[-1] - times[-2])) # don't print this when there's a progressbar
     print()
