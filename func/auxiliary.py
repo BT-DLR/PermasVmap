@@ -22,6 +22,7 @@ import sys
 sep_big = '==========\n'
 sep_small = '----------\n'
 
+
 def check_argv(argv, list_suffix):
     """
     Check and process command line arguments Permas-HDF->VMAP.
@@ -44,7 +45,7 @@ def check_argv(argv, list_suffix):
         '    optional_arg_3: variables_nodes=DISPLACEMENT,GAP_WIDTH,... (list of blank-less variables. default: ALL)\n'
     # check number of arguments
     if len(argv) == 1:
-        print('ERROR: Wrong number of arguments, must be >1 .\n' + usage_string)
+        print('ERROR: Wrong number of arguments, is 1 but must be >1.\n' + usage_string)
         sys.exit(1)
     INPUTFILENAME_model = argv[1]
     # check second argument's suffix: must match any of the entries of list_suffix
@@ -56,8 +57,7 @@ def check_argv(argv, list_suffix):
         if len(argv[2].split('=')) == 1:
             INPUTFILENAME_results = argv[2]
             # check second argument's suffix: must match any of the entries of list_suffix
-            INPUTFILENAME_results_split = INPUTFILENAME_results.split(
-                '.')
+            INPUTFILENAME_results_split = INPUTFILENAME_results.split('.')
             len_argv_filenames = 3
     if len_argv_filenames == 2:
         # not generating an error down in the if because INPUTFILENAME_results_split has the wrong suffix
@@ -78,7 +78,12 @@ def check_argv(argv, list_suffix):
 
     for suff in list_suffix:
         if INPUTFILENAME_model_split[-1] == suff and INPUTFILENAME_results_split[-1] == suff:
-            return INPUTFILENAME_model, INPUTFILENAME_model_split, INPUTFILENAME_results, INPUTFILENAME_results_split, timesteps, variables_nodes
+            return INPUTFILENAME_model, \
+                INPUTFILENAME_model_split, \
+                INPUTFILENAME_results, \
+                INPUTFILENAME_results_split, \
+                timesteps, \
+                variables_nodes
     print('ERROR: Wrong suffix of second argument, must be (any of) ' + str(list_suffix))
     sys.exit(1)
 

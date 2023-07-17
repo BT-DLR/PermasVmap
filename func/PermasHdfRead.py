@@ -47,7 +47,8 @@ def PermasHdfRead(openfile, keyword, variable_keyword='NONE'):
     -------
     analysis_info : dictionary
         Information on the analysis options. Is empty if keyword == 'model'.
-        'permas_type' : 'STATIC' or 'NLMATERIAL' or 'VIBRATION ANALYSIS'
+        'permas_type' : either of 'STATIC', 'NLMATERIAL', 'VIBRATION ANALYSIS',
+            'TEMPERATURE', 'NLTEMP', 'DIRECT TEMPERATURE', 'DIRECT NLTEMP'
         'STATENAME_string' : 'LINEAR' or 'NONLINEAR' or 'MODAL' or 'NODDIA_X'
         'temporal_type' : 'timesteps' or 'frequencies'
         'temporal_values' : list of floats
@@ -58,9 +59,20 @@ def PermasHdfRead(openfile, keyword, variable_keyword='NONE'):
         print('ERROR: keyword ' + keyword + 'does not exist!')
         sys.exit(1)
 
-    # define implemented analysis types
-    availableanalyses_temporal = ['STATIC', 'NLMATERIAL']
-    availableanalyses_modal = ['VIBRATION ANALYSIS']
+    # define implemented PERMAS analysis types (keys) and the correspopnding
+    # VMAP STATE attributes (values). there are two temporal categories:
+    # first category 'temporal': VMAP time attributes denote time quantities [t]
+    availableanalyses_temporal = {'STATIC': 'STATIC_LINEAR',
+                                  'NLMATERIAL': 'STATIC_NONLINEAR',
+                                  'TEMPERATURE': 'STATIC_LINEAR',
+                                  'NLTEMP': 'STATIC_NONLINEAR',
+                                  'DIRECT TEMPERATURE': 'TRANSIENT_LINEAR',
+                                  'DIRECT NLTEMP': 'TRANSIENT_NONLINEAR'}
+    # second category 'modal': VMAP time attribute denote frequencies [1/t]
+    availableanalyses_modal = {'VIBRATION ANALYSIS': 'MODAL'}
+    # all analyses (concatenated dictionaries)
+    availableanalyses_all = {**availableanalyses_temporal,
+                             **availableanalyses_modal}
 
     # analysis information. actually there is one per situation, but only one situation is considered
     analysis_info = {}
@@ -135,7 +147,7 @@ def PermasHdfRead(openfile, keyword, variable_keyword='NONE'):
                         situation['.Analysis'][:], sys.stdout.encoding).strip()
                     # the following comparisons are cumbersome due to using h5py 2.10 which is bad at reading strings
                     found_analysis_type = False
-                    for availableanalysis in availableanalyses_temporal + availableanalyses_modal:
+                    for availableanalysis in availableanalyses_all.keys():
                         if analysis_type.startswith(availableanalysis):
                             analysis_type = availableanalysis
                             if not found_analysis_type:
@@ -145,10 +157,9 @@ def PermasHdfRead(openfile, keyword, variable_keyword='NONE'):
                                     'WARNING: found analysis type before, something might be wrong')
                             found_analysis_type = True
                     if not found_analysis_type:
-                        print('ERROR: analysis type ' +
-                              analysis_type + 'not available! Available analysis types: ', end='')
-                        print(availableanalyses_temporal
-                              + availableanalyses_modal)
+                        print('ERROR: analysis type ' + analysis_type +
+                              'not available! Available analysis types: ', end='')
+                        print(availableanalyses_all.keys())
                         sys.exit(1)
                     # try to find nodal diameter information in .Model. If .Model is not available or does not contain $PARAMETER with keyword MNODDIA, then we assume it is not a nodal diameter analysis.
                     if analysis_type == 'VIBRATION ANALYSIS':
@@ -192,7 +203,7 @@ def PermasHdfRead(openfile, keyword, variable_keyword='NONE'):
                         print('  reading ' + variable_path +
                               '/Column' + str(ct_col+1), flush=True)
                         col_vals.append(pd.DataFrame(
-                            result_group['Column' + str(ct_col+1)]))
+                            np.array(result_group['Column' + str(ct_col+1)])))
                         # add auxiliary columns.
                         # column 'temporal' contains either timestep or frequency,
                         # repeated for every row (i.e. node)
@@ -205,18 +216,14 @@ def PermasHdfRead(openfile, keyword, variable_keyword='NONE'):
                 HdfData = pd.concat(col_vals, axis=0)
                 # assemble analysis_info dictionary
                 analysis_info = {'permas_type': analysis_type}
-                if analysis_type == 'STATIC':
-                    analysis_info['STATENAME_string'] = 'LINEAR'
-                    analysis_info['temporal_type'] = 'timesteps'
-                elif analysis_type == 'NLMATERIAL':
-                    analysis_info['STATENAME_string'] = 'NONLINEAR'
-                    analysis_info['temporal_type'] = 'timesteps'
-                else:  # VIBRATION ANALYSIS
-                    if MNODDIA > -1:
-                        analysis_info['STATENAME_string'] = 'NODDIA_' + \
-                            str(MNODDIA)
-                    else:
-                        analysis_info['STATENAME_string'] = 'MODAL'
+                analysis_info['STATENAME_string'] = availableanalyses_all[analysis_type]
+                if analysis_type == 'VIBRATION ANALYSIS' and MNODDIA > -1:
+                    analysis_info['STATENAME_string'] = 'NODDIA_' + \
+                        str(MNODDIA)
+                if analysis_type in availableanalyses_modal.keys():
                     analysis_info['temporal_type'] = 'frequencies'
+                else:
+                    analysis_info['temporal_type'] = 'timesteps'
                 analysis_info['temporal_values'] = list(col_des)
+
     return analysis_info, HdfData

@@ -95,7 +95,7 @@ def VmapWriteInitial(openfile):
 
 def VmapWriteVariables(openfile,
                        results,
-                       result_type="Displacement",
+                       result_type,
                        state="STATE-0",
                        part_id=0,
                        part_length=0,

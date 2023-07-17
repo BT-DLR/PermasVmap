@@ -52,7 +52,7 @@ def PermasResultsRead(inputfile_results, timesteps_user, variables_node_user):
 
     analysis_info = {}
     # READ NODAL RESULTS
-    if 'NONE' in variables_node_user:
+    if 'NONE' in variables_node_user or 'NONE' in timesteps_user:
         node_results_pd = pd.DataFrame([])
     else:
         if not 'DEFAULT' in variables_node_user:

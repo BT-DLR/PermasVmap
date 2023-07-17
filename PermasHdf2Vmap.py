@@ -249,10 +249,10 @@ if num_noderesults > 0 and num_temporal > 0:
                         found_part_of_node = True
                         break
                 if not found_part_of_node:
-                    print('ERROR: could not find part of node')
+                    print('ERROR: could not find part of node ' + str(node))
                     sys.exit(1)
-                node_results_pd = node_results_pd.assign(
-                    PART=nodes_results_part_list)
+            node_results_pd = node_results_pd.assign(
+                PART=nodes_results_part_list)
         else:
             node_results_pd = node_results_pd.assign(
                 PART=[partnames[0]]*len(node_results_pd))
